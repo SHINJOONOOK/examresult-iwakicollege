@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>合否発表</title>
+    <script>
+        const SHEET_URL = "https://script.google.com/macros/s/AKfycbwbWdR5xxRF-ZWCGMAkQZcwWnfdrvQ9BCeijuB7XbVzV8rtH2q8OSkQaee7isZQKaerzg/exec";
+
+        async function checkResult() {
+            let examNumber = document.getElementById("examNumber").value;
+            let birthDate = document.getElementById("birthDate").value;
+            let resultText = "該当するデータがありません";
+            let departmentText = "";
+            let additionalText = "";
+            let loadingText = "確認中です。しばらくお待ちください...";
+            
+            document.getElementById("result").innerText = loadingText;
+            document.getElementById("department-info").innerText = "";
+            document.getElementById("additional-info").innerText = "";
+
+            try {
+                let response = await fetch(SHEET_URL);
+                let data = await response.json();
+
+                if (data[examNumber] && data[examNumber].birthDate === birthDate) {
+                    resultText = data[examNumber].status;
+                    departmentText = data[examNumber].undergraduate || "";
+                    if (resultText === "合格") {
+                        additionalText = "合格おめでとうございます。\n合格通知書及び入学手続き書類を郵送いたします。";
+                    }
+                }
+            } catch (error) {
+                console.error("データの取得に失敗しました", error);
+                resultText = "エラーが発生しました";
+            }
+
+            document.getElementById("department-info").innerText = departmentText;
+            document.getElementById("result").innerText = resultText;
+            document.getElementById("additional-info").innerText = additionalText;
+        }
+    </script>
+    
+    <style>
+        body { font-family: Arial, sans-serif; }
+        .header-container {
+            display: flex;
+            justify-content: center;
+        }
+        .header-container img {
+            width: 400px;
+            height: 82%;
+        }
+        h2 { font-size: 200%; }
+        .department-text {
+            text-align: center;
+            font-size: 17px;
+            font-weight: bold;
+            margin-top: 20px;
+            margin-bottom: 10px;
+        }
+        .additional-text {
+            text-align: center;
+            font-size: 14px;
+            margin-top: 10px;
+            white-space: pre-line;
+        }
+    </style>
+</head>
+<body>
+    <div class="header-container">
+        <img src="https://raw.githubusercontent.com/shinjoonook/examresult-iwakicollege/main/%E3%82%B9%E3%82%AF%E3%83%AA%E3%83%BC%E3%83%B3%E3%82%B7%E3%83%A7%E3%83%83%E3%83%88%202025-02-19%20170426.png" alt="サイトロゴ">
+    </div>
+    <h2 style="text-align: center; font-size: 200%;">合否発表</h2>
+    <p style="text-align: center; font-size: 14px;">受験番号と生年月日を入力すると、合否結果が表示されます。<br>半角数字で入力してください。</p>
+    <div style="text-align: center;">
+        <label>1. 受験番号：</label>
+        <input type="text" id="examNumber" placeholder="例：12345"><br><br>
+        <label>2. 生年月日：</label>
+        <input type="text" id="birthDate" placeholder="例：20051231"><br><br>
+        <button onclick="checkResult()">確認</button>
+        <br><br>
+        <p id="department-info" class="department-text"></p>
+        <h2 id="result"></h2>
+        <p id="additional-info" class="additional-text"></p>
+    </div>
+</body>
+</html>
